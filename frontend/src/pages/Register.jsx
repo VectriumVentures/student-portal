@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { registerUser } from "../features/auth/authSlice";
+import { signUp } from "../services/operations/authAPI"; // ✅ Import signUp from authAPI.js
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
@@ -14,12 +14,15 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log("Form data:", { name, email, password, role }); // Debug form data
 
-    const result = await dispatch(
-      registerUser({ name, email, password, role })
-    );
+    try {
+      // ✅ Use signUp function instead of registerUser
+      await dispatch(signUp(name, email, password, role, navigate));
+      console.log("Registration successful");
 
-    if (registerUser.fulfilled.match(result)) {
+      // If we get here, registration was successful
       if (role === "student") {
         alert("Registration successful! Redirecting to student dashboard.");
         navigate("/student");
@@ -30,6 +33,14 @@ const Register = () => {
         alert("Registration successful! Please login.");
         navigate("/");
       }
+    } catch (error) {
+      // Enhanced error logging
+      console.error("Registration failed:", error);
+      console.error("Error type:", typeof error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      
+      // Show user-friendly error message
+      alert(`Registration failed: ${error.message || error}`);
     }
   };
 
@@ -45,6 +56,7 @@ const Register = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
           <p className="text-gray-600">Join our platform today</p>
         </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
@@ -55,8 +67,10 @@ const Register = () => {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                 required
+                minLength={2}
               />
             </div>
+            
             <div>
               <input
                 type="email"
@@ -67,6 +81,7 @@ const Register = () => {
                 required
               />
             </div>
+            
             <div>
               <input
                 type="password"
@@ -75,8 +90,10 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                 required
+                minLength={6}
               />
             </div>
+            
             <div>
               <select
                 value={role}
@@ -89,6 +106,7 @@ const Register = () => {
               </select>
             </div>
           </div>
+          
           <button
             type="submit"
             disabled={loading}
@@ -106,6 +124,7 @@ const Register = () => {
               "Create Account"
             )}
           </button>
+          
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3">
               <p className="text-red-600 text-sm text-center">{error}</p>

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { loginUser } from "../features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../services/operations/authAPI"; // ✅ Import from authAPI.js
 import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
@@ -8,17 +8,19 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser({ email, password })).then((res) => {
-      if (loginUser.fulfilled.match(res)) {
-        const role = res.payload; // The payload is the role directly
-        if (role === "student") navigate("/student");
-        if (role === "counsellor") navigate("/counsellor");
-        if (role === "admin") navigate("/admin");
-      }
-    });
+    
+    console.log("Login data:", { email });
+
+    try {
+      await dispatch(login(email, password, navigate)); // ✅ Use login function
+      console.log("Login successful");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (

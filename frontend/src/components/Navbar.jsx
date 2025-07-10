@@ -1,16 +1,19 @@
-import { useDispatch } from "react-redux";
-import { logoutUser } from "../features/auth/authSlice";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../services/operations/authAPI";
+import { useNavigate, Link } from "react-router-dom";
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { role } = useSelector((state) => state.auth);
+  const { user, role, token } = useSelector((state) => state.auth);
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout(navigate));
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const getRoleColor = () => {
@@ -48,20 +51,39 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className={`px-3 py-2 rounded-full text-sm font-semibold ${getRoleColor()}`}>
-              <span className="mr-1">{getRoleIcon()}</span>
-              <span className="capitalize">{role}</span>
-            </div>
+            {token && user ? (
+              <>
+                <div className={`px-3 py-2 rounded-full text-sm font-semibold ${getRoleColor()}`}>
+                  <span className="mr-1">{getRoleIcon()}</span>
+                  <span className="capitalize">{role}</span>
+                </div>
 
-            <button
-              onClick={handleLogout}
-              className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center space-x-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-              </svg>
-              <span>Logout</span>
-            </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <div className="space-x-2">
+                <Link
+                  to="/login"
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

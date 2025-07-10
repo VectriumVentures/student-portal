@@ -1,72 +1,52 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../api"; // point to your api.js
+import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  role: null,
-  loading: false,
-  error: null,
+// Safe localStorage getter
+const getUserFromStorage = () => {
+    try {
+        const userString = localStorage.getItem("user");
+        return userString && userString !== "undefined" ? JSON.parse(userString) : null;
+    } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        localStorage.removeItem("user");
+        return null;
+    }
 };
 
-// --- Login thunk ---
-export const loginUser = createAsyncThunk("auth/login", async (data, thunkAPI) => {
-  try {
-    const res = await api.post("/api/auth/login", data);
-    return res.data.role; // we just care about role now
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.msg || "Login failed");
-  }
-});
-
-// --- Register thunk ---
-export const registerUser = createAsyncThunk("auth/register", async (data, thunkAPI) => {
-  try {
-    await api.post("/api/auth/register", data);
-    return "Registered successfully";
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.msg || "Register failed");
-  }
-});
-
-// --- Logout thunk ---
-export const logoutUser = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
-  try {
-    await api.post("/api/auth/logout");
-    return true;
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.msg || "Logout failed");
-  }
-});
+const initialState = {
+    role: getUserFromStorage()?.role || null,
+    user: getUserFromStorage(),
+    token: localStorage.getItem("token") || null,
+    loading: false,
+    error: null,
+};
 
 const authSlice = createSlice({
-  name: "auth",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.role = action.payload;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      .addCase(registerUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state) => {
-        state.loading = false;
-        state.error = null;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.role = null;
-        state.error = null;
-      });
-  },
+    name: "auth",
+    initialState,
+    reducers: {
+        setLoading: (state, action) => {
+            state.loading = action.payload;
+        },
+        setError: (state, action) => {
+            state.error = action.payload;
+        },
+        clearError: (state) => {
+            state.error = null;
+        },
+        setUser: (state, action) => {
+            state.user = action.payload.user;
+            state.token = action.payload.token;
+            state.role = action.payload.role;
+        },
+        clearAuth: (state) => {
+            state.user = null;
+            state.role = null;
+            state.token = null;
+            state.loading = false;
+            state.error = null;
+        }
+    }
 });
 
+export const { setLoading, setError, clearError, setUser, clearAuth } = authSlice.actions;
 export default authSlice.reducer;
