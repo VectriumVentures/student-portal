@@ -1,11 +1,11 @@
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/dashboards/StudentDashboard";
 import CounsellorDashboard from "./pages/dashboards/CounsellorDashboard";
 import AdminDashboard from "./pages/dashboards/AdminDashboard";
-import StudentTestBoard from "./pages/StudentTestBoard";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { StudentRoute, CounsellorRoute, AdminRoute } from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -13,37 +13,42 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/student-test-board" element={<StudentTestBoard />} />
 
-        {/* Protected Routes */}
+        {/* Protected Dashboard Routes */}
         <Route
-          path="/student"
+          path="/student-dashboard"
           element={
-            <ProtectedRoute role="student">
+            <StudentRoute>
               <StudentDashboard />
-            </ProtectedRoute>
+            </StudentRoute>
           }
         />
         <Route
-          path="/counsellor"
+          path="/counsellor-dashboard"
           element={
-            <ProtectedRoute role="counsellor">
+            <CounsellorRoute>
               <CounsellorDashboard />
-            </ProtectedRoute>
+            </CounsellorRoute>
           }
         />
         <Route
-          path="/admin"
+          path="/admin-dashboard"
           element={
-            <ProtectedRoute role="admin">
+            <AdminRoute>
               <AdminDashboard />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
+
+        {/* Legacy route redirects */}
+        <Route path="/student" element={<Navigate to="/student-dashboard" replace />} />
+        <Route path="/counsellor" element={<Navigate to="/counsellor-dashboard" replace />} />
+        <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
 
         {/* Catch-all: redirect to login */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

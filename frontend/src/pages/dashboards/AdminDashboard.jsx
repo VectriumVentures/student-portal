@@ -1,437 +1,434 @@
+import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
-import { useState } from "react";
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [users, setUsers] = useState([
-    { id: 1, name: "John Smith", email: "john@example.com", role: "student", status: "active", joinDate: "2024-01-15" },
-    { id: 2, name: "Sarah Wilson", email: "sarah@example.com", role: "student", status: "active", joinDate: "2024-01-12" },
-    { id: 3, name: "Dr. Mike Johnson", email: "mike@example.com", role: "counsellor", status: "active", joinDate: "2024-01-10" },
-    { id: 4, name: "Admin User", email: "admin@crm.com", role: "admin", status: "active", joinDate: "2024-01-01" }
-  ]);
-  const [universities, setUniversities] = useState([
-    { id: 1, name: "MIT", country: "USA", courses: ["Computer Science", "Engineering"], ranking: 1 },
-    { id: 2, name: "Stanford", country: "USA", courses: ["Data Science", "AI/ML"], ranking: 2 },
-    { id: 3, name: "Harvard", country: "USA", courses: ["Business", "Medicine"], ranking: 3 }
-  ]);
-  const [countries, setCountries] = useState([
-    { id: 1, name: "United States", code: "USA", universities: 3 },
-    { id: 2, name: "United Kingdom", code: "UK", universities: 2 },
-    { id: 3, name: "Canada", code: "CA", universities: 1 }
-  ]);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [users, setUsers] = useState([]);
+  const [systemStats, setSystemStats] = useState({});
+  const [universities, setUniversities] = useState([]);
 
-  const toggleUserStatus = (userId) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
-        : user
-    ));
+  // Mock data for demonstration
+  useEffect(() => {
+    setUsers([
+      { id: 1, name: "John Doe", email: "john.doe@example.com", role: "student", status: "Active", joinDate: "2024-01-10", lastLogin: "2024-01-16" },
+      { id: 2, name: "Jane Smith", email: "jane.smith@example.com", role: "student", status: "Active", joinDate: "2024-01-08", lastLogin: "2024-01-15" },
+      { id: 3, name: "Dr. Wilson", email: "dr.wilson@example.com", role: "counsellor", status: "Active", joinDate: "2023-12-15", lastLogin: "2024-01-16" },
+      { id: 4, name: "Prof. Johnson", email: "prof.j@example.com", role: "counsellor", status: "Active", joinDate: "2023-11-20", lastLogin: "2024-01-14" },
+      { id: 5, name: "Mike Brown", email: "mike.b@example.com", role: "student", status: "Inactive", joinDate: "2023-12-01", lastLogin: "2024-01-05" }
+    ]);
+
+    setSystemStats({
+      totalUsers: 156,
+      activeUsers: 142,
+      totalApplications: 324,
+      pendingApplications: 45,
+      totalDocuments: 892,
+      systemUptime: "99.9%",
+      storageUsed: "2.3 GB",
+      monthlyGrowth: "+12%"
+    });
+
+    setUniversities([
+      { id: 1, name: "Stanford University", country: "USA", programs: 45, applications: 89, status: "Active" },
+      { id: 2, name: "MIT", country: "USA", programs: 38, applications: 76, status: "Active" },
+      { id: 3, name: "University of Oxford", country: "UK", programs: 52, applications: 67, status: "Active" },
+      { id: 4, name: "University of Toronto", country: "Canada", programs: 41, applications: 54, status: "Active" },
+      { id: 5, name: "Australian National University", country: "Australia", programs: 33, applications: 43, status: "Active" }
+    ]);
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Active": return "text-green-600 bg-green-100";
+      case "Inactive": return "text-red-600 bg-red-100";
+      case "Pending": return "text-yellow-600 bg-yellow-100";
+      default: return "text-gray-600 bg-gray-100";
+    }
   };
 
-  const deleteUser = (userId) => {
-    setUsers(users.filter(user => user.id !== userId));
+  const getRoleColor = (role) => {
+    switch (role) {
+      case "admin": return "text-purple-600 bg-purple-100";
+      case "counsellor": return "text-blue-600 bg-blue-100";
+      case "student": return "text-green-600 bg-green-100";
+      default: return "text-gray-600 bg-gray-100";
+    }
   };
 
-  const getStats = () => {
-    const totalUsers = users.length;
-    const students = users.filter(u => u.role === 'student').length;
-    const counsellors = users.filter(u => u.role === 'counsellor').length;
-    const activeUsers = users.filter(u => u.status === 'active').length;
-    
-    return { totalUsers, students, counsellors, activeUsers };
-  };
+  const OverviewTab = () => (
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+        <h2 className="text-2xl font-bold mb-2">Welcome back, Admin! 👑</h2>
+        <p className="text-purple-100">Monitor system performance, manage users, and oversee platform operations.</p>
+      </div>
 
-  const stats = getStats();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50">
-      <Navbar />
-      <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8 border border-white/20">
+      {/* System Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">Admin Portal 👑</h1>
-              <p className="text-gray-600 text-lg">Manage your CRM platform</p>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">{systemStats.totalUsers}</p>
+              <p className="text-xs text-green-600">{systemStats.monthlyGrowth} this month</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{stats.totalUsers}</div>
-                <div className="text-sm text-gray-600">Total Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.students}</div>
-                <div className="text-sm text-gray-600">Students</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600">{stats.counsellors}</div>
-                <div className="text-sm text-gray-600">Counselors</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.activeUsers}</div>
-                <div className="text-sm text-gray-600">Active</div>
-              </div>
+            <div className="p-3 bg-blue-100 rounded-full">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mb-8 border border-white/20">
-          <div className="flex space-x-1 p-2">
-            {[
-              { id: "dashboard", label: "Dashboard", icon: "📊" },
-              { id: "users", label: "User Management", icon: "👥" },
-              { id: "universities", label: "Universities", icon: "🏫" },
-              { id: "countries", label: "Countries", icon: "🌍" },
-              { id: "reports", label: "Reports", icon: "📈" }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-xl transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span className="font-medium">{tab.label}</span>
-              </button>
+        <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Users</p>
+              <p className="text-2xl font-bold text-gray-900">{systemStats.activeUsers}</p>
+              <p className="text-xs text-gray-500">{((systemStats.activeUsers / systemStats.totalUsers) * 100).toFixed(1)}% active rate</p>
+            </div>
+            <div className="p-3 bg-green-100 rounded-full">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-yellow-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Applications</p>
+              <p className="text-2xl font-bold text-gray-900">{systemStats.totalApplications}</p>
+              <p className="text-xs text-yellow-600">{systemStats.pendingApplications} pending review</p>
+            </div>
+            <div className="p-3 bg-yellow-100 rounded-full">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-purple-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">System Health</p>
+              <p className="text-2xl font-bold text-gray-900">{systemStats.systemUptime}</p>
+              <p className="text-xs text-gray-500">{systemStats.storageUsed} storage used</p>
+            </div>
+            <div className="p-3 bg-purple-100 rounded-full">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Users */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent User Activity</h3>
+          <div className="space-y-4">
+            {users.slice(0, 4).map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {user.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{user.name}</h4>
+                    <p className="text-sm text-gray-600">{user.email}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                    {user.role}
+                  </span>
+                  <p className="text-xs text-gray-500 mt-1">Last: {user.lastLogin}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20">
-          {/* Dashboard Tab */}
-          {activeTab === "dashboard" && (
-            <div className="p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">System Overview</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-blue-100">Total Applications</p>
-                      <p className="text-3xl font-bold">89</p>
-                    </div>
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">📝</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-emerald-100">Success Rate</p>
-                      <p className="text-3xl font-bold">78%</p>
-                    </div>
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">✅</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-orange-100">Pending Reviews</p>
-                      <p className="text-3xl font-bold">12</p>
-                    </div>
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">⏳</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-6 text-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100">Revenue</p>
-                      <p className="text-3xl font-bold">$45K</p>
-                    </div>
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">💰</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
+        {/* Top Universities */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Universities</h3>
+          <div className="space-y-4">
+            {universities.slice(0, 4).map((uni) => (
+              <div key={uni.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="font-semibold text-gray-800">New student registered</p>
-                      <p className="text-sm text-gray-600">John Doe joined the platform</p>
-                      <p className="text-xs text-gray-500">2 minutes ago</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="font-semibold text-gray-800">Application submitted</p>
-                      <p className="text-sm text-gray-600">Sarah Wilson applied to MIT</p>
-                      <p className="text-xs text-gray-500">1 hour ago</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="font-semibold text-gray-800">Counselor assigned</p>
-                      <p className="text-sm text-gray-600">Dr. Johnson assigned to new student</p>
-                      <p className="text-xs text-gray-500">3 hours ago</p>
-                    </div>
-                  </div>
+                  <h4 className="font-medium text-gray-900">{uni.name}</h4>
+                  <p className="text-sm text-gray-600">{uni.country} • {uni.programs} programs</p>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
-                  <div className="grid gap-3">
-                    <button 
-                      onClick={() => setActiveTab("users")}
-                      className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-4 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 text-left"
-                    >
-                      <div className="font-semibold">Manage Users</div>
-                      <div className="text-sm opacity-90">Add, edit, or remove users</div>
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab("universities")}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-4 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 text-left"
-                    >
-                      <div className="font-semibold">Manage Universities</div>
-                      <div className="text-sm opacity-90">Update university database</div>
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab("reports")}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 text-left"
-                    >
-                      <div className="font-semibold">Generate Reports</div>
-                      <div className="text-sm opacity-90">View analytics and insights</div>
-                    </button>
-                  </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-blue-600">{uni.applications}</p>
+                  <p className="text-xs text-gray-500">applications</p>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Users Tab */}
-          {activeTab === "users" && (
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-                <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 font-semibold">
-                  Add New User
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Name</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Email</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Role</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Join Date</th>
-                      <th className="text-left py-4 px-4 font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4">{user.name}</td>
-                        <td className="py-4 px-4">{user.email}</td>
-                        <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                            user.role === 'counsellor' ? 'bg-emerald-100 text-emerald-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">{user.joinDate}</td>
-                        <td className="py-4 px-4">
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => toggleUserStatus(user.id)}
-                              className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-                            >
-                              {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                            </button>
-                            <button 
-                              onClick={() => deleteUser(user.id)}
-                              className="bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition-colors text-sm"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Universities Tab */}
-          {activeTab === "universities" && (
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">University Management</h2>
-                <button className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3 rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 font-semibold">
-                  Add University
-                </button>
-              </div>
-              <div className="grid gap-6">
-                {universities.map((university) => (
-                  <div key={university.id} className="bg-gray-50 rounded-xl p-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-800">{university.name}</h3>
-                        <p className="text-gray-600">Country: {university.country}</p>
-                        <p className="text-gray-600">Ranking: #{university.ranking}</p>
-                        <div className="mt-2">
-                          <p className="text-sm font-medium text-gray-700">Available Courses:</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {university.courses.map((course, index) => (
-                              <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                {course}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
-                          Edit
-                        </button>
-                        <button className="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors">
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Countries Tab */}
-          {activeTab === "countries" && (
-            <div className="p-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Country Management</h2>
-                <button className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 font-semibold">
-                  Add Country
-                </button>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {countries.map((country) => (
-                  <div key={country.id} className="bg-gray-50 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">{country.name}</h3>
-                      <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
-                        {country.code}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-4">{country.universities} Universities</p>
-                    <div className="flex space-x-2">
-                      <button className="flex-1 bg-blue-100 text-blue-700 py-2 rounded-lg hover:bg-blue-200 transition-colors">
-                        Edit
-                      </button>
-                      <button className="flex-1 bg-red-100 text-red-700 py-2 rounded-lg hover:bg-red-200 transition-colors">
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Reports Tab */}
-          {activeTab === "reports" && (
-            <div className="p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Reports & Analytics</h2>
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl p-6 text-white">
-                  <h3 className="text-xl font-semibold mb-4">Application Statistics</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Total Applications:</span>
-                      <span className="font-bold">89</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Approved:</span>
-                      <span className="font-bold">67</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Pending:</span>
-                      <span className="font-bold">12</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Rejected:</span>
-                      <span className="font-bold">10</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-6 text-white">
-                  <h3 className="text-xl font-semibold mb-4">Performance Metrics</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Success Rate:</span>
-                      <span className="font-bold">78%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Avg. Processing Time:</span>
-                      <span className="font-bold">14 days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Student Satisfaction:</span>
-                      <span className="font-bold">4.8/5</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Revenue This Month:</span>
-                      <span className="font-bold">$45,230</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                <button className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Application Report</h3>
-                  <p className="text-gray-600 text-sm">Generate detailed application analytics</p>
-                </button>
-
-                <button className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-emerald-400 hover:bg-emerald-50 transition-all duration-200 text-center">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">User Activity Report</h3>
-                  <p className="text-gray-600 text-sm">Track user engagement and activity</p>
-                </button>
-
-                <button className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Financial Report</h3>
-                  <p className="text-gray-600 text-sm">Revenue and financial analytics</p>
-                </button>
-              </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       </div>
     </div>
+  );
+
+  const UsersTab = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+        <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+          + Add User
+        </button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.joinDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.lastLogin}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                      <button className="text-red-600 hover:text-red-900">Delete</button>
+                      <button className="text-green-600 hover:text-green-900">Reset Password</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const UniversitiesTab = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">University Management</h2>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+          + Add University
+        </button>
+      </div>
+
+      <div className="grid gap-6">
+        {universities.map((uni) => (
+          <div key={uni.id} className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-gray-900">{uni.name}</h3>
+                <p className="text-gray-600">{uni.country}</p>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(uni.status)}`}>
+                {uni.status}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-gray-600">Programs</p>
+                <p className="text-2xl font-bold text-blue-600">{uni.programs}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Applications</p>
+                <p className="text-2xl font-bold text-green-600">{uni.applications}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Country</p>
+                <p className="font-medium text-gray-900">{uni.country}</p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm hover:bg-blue-200 transition-colors">
+                View Details
+              </button>
+              <button className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm hover:bg-green-200 transition-colors">
+                Edit University
+              </button>
+              <button className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-sm hover:bg-yellow-200 transition-colors">
+                Manage Programs
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const AnalyticsTab = () => (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900">Analytics & Reports</h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* User Growth Chart */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">User Growth</h3>
+          <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📈</div>
+              <p className="text-gray-600">Chart visualization would go here</p>
+              <p className="text-sm text-gray-500">Integration with Chart.js or similar</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Application Statistics */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Application Statistics</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+              <span className="font-medium">Total Applications</span>
+              <span className="text-2xl font-bold text-blue-600">{systemStats.totalApplications}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+              <span className="font-medium">Pending Review</span>
+              <span className="text-2xl font-bold text-yellow-600">{systemStats.pendingApplications}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+              <span className="font-medium">Approved</span>
+              <span className="text-2xl font-bold text-green-600">{systemStats.totalApplications - systemStats.pendingApplications}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* System Performance */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">System Performance</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Uptime</span>
+              <span className="font-bold text-green-600">{systemStats.systemUptime}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Storage Used</span>
+              <span className="font-bold">{systemStats.storageUsed}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Active Sessions</span>
+              <span className="font-bold text-blue-600">{systemStats.activeUsers}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Monthly Growth</span>
+              <span className="font-bold text-green-600">{systemStats.monthlyGrowth}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity Log */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm">New user registration: John Doe</span>
+              <span className="text-xs text-gray-500 ml-auto">2 min ago</span>
+            </div>
+            <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm">Application submitted to MIT</span>
+              <span className="text-xs text-gray-500 ml-auto">5 min ago</span>
+            </div>
+            <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <span className="text-sm">Document uploaded by Jane Smith</span>
+              <span className="text-xs text-gray-500 ml-auto">10 min ago</span>
+            </div>
+            <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span className="text-sm">Meeting scheduled with counselor</span>
+              <span className="text-xs text-gray-500 ml-auto">15 min ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "overview": return <OverviewTab />;
+      case "users": return <UsersTab />;
+      case "universities": return <UniversitiesTab />;
+      case "analytics": return <AnalyticsTab />;
+      default: return <OverviewTab />;
+    }
+  };
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Tab Navigation */}
+          <div className="bg-white rounded-lg shadow-sm mb-8">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-8 px-6">
+                {[
+                  { id: "overview", name: "Overview", icon: "🏠" },
+                  { id: "users", name: "Users", icon: "👥" },
+                  { id: "universities", name: "Universities", icon: "🏛️" },
+                  { id: "analytics", name: "Analytics", icon: "📊" }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.id
+                        ? "border-purple-500 text-purple-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="mr-2">{tab.icon}</span>
+                    {tab.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          {renderTabContent()}
+        </div>
+      </div>
+    </>
   );
 }
