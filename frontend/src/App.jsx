@@ -16,9 +16,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected Dashboard Routes */}
+        {/* Protected Dashboard Routes with nested routing */}
         <Route
-          path="/student-dashboard"
+          path="/student-dashboard/*"
           element={
             <StudentRoute>
               <StudentDashboard />
@@ -26,7 +26,7 @@ function App() {
           }
         />
         <Route
-          path="/counsellor-dashboard"
+          path="/counsellor-dashboard/*"
           element={
             <CounsellorRoute>
               <CounsellorDashboard />
@@ -34,7 +34,7 @@ function App() {
           }
         />
         <Route
-          path="/admin-dashboard"
+          path="/admin-dashboard/*"
           element={
             <AdminRoute>
               <AdminDashboard />

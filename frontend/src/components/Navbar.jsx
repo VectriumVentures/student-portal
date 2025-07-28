@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
+import { getUserInitials, getRoleColor, getRoleIcon } from "../utils/auth";
+import { APP_CONFIG } from "../constants";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -20,23 +22,7 @@ const Navbar = () => {
     }
   };
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "admin": return "bg-purple-100 text-purple-800";
-      case "counsellor": return "bg-blue-100 text-blue-800";
-      case "student": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
 
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case "admin": return "👑";
-      case "counsellor": return "👨‍🏫";
-      case "student": return "🎓";
-      default: return "👤";
-    }
-  };
 
   if (!user) return null;
 
@@ -74,7 +60,7 @@ const Navbar = () => {
                 className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg p-2"
               >
                 <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                  {getUserInitials(user.name)}
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>

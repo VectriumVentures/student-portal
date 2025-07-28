@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../features/auth/authSlice";
 import { useNavigate, Link } from "react-router-dom";
+import { REGISTRATION_CONFIG, USER_ROLES } from "../constants";
+import { validateRegistrationForm } from "../utils/validation";
+import { getRoleBasedRedirect } from "../utils/auth";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -9,77 +12,34 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "student", // Default role
+    role: USER_ROLES.STUDENT, // Default role
     phone: "",
     organization: "", // For counsellors
     studentId: "", // For students
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
 
-  const roles = [
-    { value: "student", label: "Student", icon: "🎓", description: "Apply to universities and manage applications" },
-    { value: "counsellor", label: "Counsellor", icon: "👨‍🏫", description: "Guide students through their application process" },
-    { value: "admin", label: "Administrator", icon: "👑", description: "Manage platform and oversee operations" }
-  ];
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      setError("Full name is required");
-      return false;
+    // Clear specific field error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
-
-    if (!formData.email.trim()) {
-      setError("Email address is required");
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
-    if (!formData.phone.trim()) {
-      setError("Phone number is required");
-      return false;
-    }
-
-    if (formData.role === "counsellor" && !formData.organization.trim()) {
-      setError("Organization is required for counsellors");
-      return false;
-    }
-
-    if (formData.role === "student" && !formData.studentId.trim()) {
-      setError("Student ID is required for students");
-      return false;
-    }
-
-    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
-    if (!validateForm()) {
+    // Validate form
+    const validation = validateRegistrationForm(formData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
       return;
     }
 
@@ -90,38 +50,28 @@ const Register = () => {
         password: formData.password,
         role: formData.role,
         phone: formData.phone.trim(),
-        ...(formData.role === "counsellor" && { organization: formData.organization.trim() }),
-        ...(formData.role === "student" && { studentId: formData.studentId.trim() }),
+        ...(formData.role === USER_ROLES.COUNSELLOR && { organization: formData.organization.trim() }),
+        ...(formData.role === USER_ROLES.STUDENT && { studentId: formData.studentId.trim() }),
       };
 
       const result = await dispatch(registerUser(registrationData));
 
       if (registerUser.fulfilled.match(result)) {
         // Navigate based on role
-        switch (formData.role) {
-          case "student":
-            navigate("/student-dashboard");
-            break;
-          case "counsellor":
-            navigate("/counsellor-dashboard");
-            break;
-          case "admin":
-            navigate("/admin-dashboard");
-            break;
-          default:
-            navigate("/student-dashboard");
-        }
+        const redirectPath = getRoleBasedRedirect(formData.role);
+        navigate(redirectPath);
       } else {
-        setError(result.payload || "Registration failed. Please try again.");
+        setErrors({ general: result.payload || "Registration failed. Please try again." });
       }
-    } catch (err) {
-      setError("Registration failed. Please check your connection and try again.");
+    } catch (error) {
+      console.error("Registration error:", error);
+      setErrors({ general: "Registration failed. Please check your connection and try again." });
     }
   };
 
   const getRoleSpecificFields = () => {
     switch (formData.role) {
-      case "student":
+      case USER_ROLES.STUDENT:
         return (
           <div>
             <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">
@@ -134,12 +84,17 @@ const Register = () => {
               required
               value={formData.studentId}
               onChange={handleChange}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                errors.studentId ? 'border-red-300' : 'border-gray-300'
+              }`}
               placeholder="Enter your student ID"
             />
+            {errors.studentId && (
+              <p className="mt-1 text-sm text-red-600">{errors.studentId}</p>
+            )}
           </div>
         );
-      case "counsellor":
+      case USER_ROLES.COUNSELLOR:
         return (
           <div>
             <label htmlFor="organization" className="block text-sm font-medium text-gray-700">
@@ -152,9 +107,14 @@ const Register = () => {
               required
               value={formData.organization}
               onChange={handleChange}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                errors.organization ? 'border-red-300' : 'border-gray-300'
+              }`}
               placeholder="Enter your organization name"
             />
+            {errors.organization && (
+              <p className="mt-1 text-sm text-red-600">{errors.organization}</p>
+            )}
           </div>
         );
       default:
@@ -187,12 +147,12 @@ const Register = () => {
 
         <div className="bg-white rounded-lg shadow-md p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
+            {errors.general && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                {error}
+                {errors.general}
               </div>
             )}
 
@@ -202,7 +162,7 @@ const Register = () => {
                 Select Your Role
               </label>
               <div className="grid grid-cols-1 gap-3">
-                {roles.map((role) => (
+                {REGISTRATION_CONFIG.roles.map((role) => (
                   <label
                     key={role.value}
                     className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-all ${
@@ -257,9 +217,14 @@ const Register = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                    errors.name ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your full name"
                 />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
               </div>
 
               <div>
@@ -273,9 +238,14 @@ const Register = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                    errors.email ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your email address"
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                )}
               </div>
 
               <div>
@@ -289,9 +259,14 @@ const Register = () => {
                   required
                   value={formData.phone}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                    errors.phone ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your phone number"
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                )}
               </div>
             </div>
 
@@ -311,9 +286,14 @@ const Register = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Enter your password"
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
               </div>
 
               <div>
@@ -327,9 +307,14 @@ const Register = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className={`mt-1 appearance-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm ${
+                    errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                  }`}
                   placeholder="Confirm your password"
                 />
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                )}
               </div>
             </div>
 
